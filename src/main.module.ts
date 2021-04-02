@@ -5,12 +5,14 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseConfigService } from './database/mongoose-config.service';
 import { MongooseConfigModule } from './database/mongoose-config.module';
 
+const ENVIRONMENT = `${process.env.NODE_ENV}`.replace(/^((?!(development|production)).)*$/g, 'development')
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       cache: true,
-      envFilePath: `./config/${process.env.NODE_ENV || 'development'}.env`,
+      envFilePath: `./config/${ENVIRONMENT}.env`,
     }),
     MongooseModule.forRootAsync({
       imports: [MongooseConfigModule],
