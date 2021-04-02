@@ -1,12 +1,16 @@
 import { HttpService, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AxiosResponse } from 'axios';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 @Injectable()
 export class PostsService {
-  ghostApi = 'https://dartilesdev.herokuapp.com/ghost/api/v3';
-  constructor(private httpService: HttpService) {}
+  ghostApi: string;
+
+  constructor(private httpService: HttpService, private configService: ConfigService) {
+    this.ghostApi = this.configService.get('GHOST_URI')
+  }
 
   findAll(): Observable<AxiosResponse> {
     return this.httpService
