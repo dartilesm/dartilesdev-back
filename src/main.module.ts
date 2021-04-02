@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppModule } from './app/app.module';
-import { ConfigModule } from '@nestjs/config';
-import { MongooseConfigService } from './database/mongoose-config.service';
+import { CoreModule } from './core/core.module';
 import { MongooseConfigModule } from './database/mongoose-config.module';
+import { MongooseConfigService } from './database/mongoose-config.service';
 
 const ENVIRONMENT = `${process.env.NODE_ENV}`.replace(/^((?!(development|production)).)*$/g, 'development')
 
@@ -19,6 +20,7 @@ const ENVIRONMENT = `${process.env.NODE_ENV}`.replace(/^((?!(development|product
       useExisting: MongooseConfigService,
     }),
     AppModule,
+    CoreModule
   ]
 })
 export class MainModule {}
