@@ -1,8 +1,9 @@
-import { SchemaFactory, Schema } from '@nestjs/mongoose'
+import { SchemaFactory, Schema, Prop } from '@nestjs/mongoose'
 import { Document } from 'mongoose'
 
 @Schema()
 export class Sponsor {
+  @Prop()
   name: string;
 }
 

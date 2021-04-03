@@ -5,6 +5,7 @@ import { AppModule } from './app/app.module';
 import { CoreModule } from './core/core.module';
 import { MongooseConfigModule } from './database/mongoose-config.module';
 import { MongooseConfigService } from './database/mongoose-config.service';
+import { AuthModule } from './auth/auth.module';
 
 const ENVIRONMENT = `${process.env.NODE_ENV}`.replace(/^((?!(development|production)).)*$/g, 'development')
 
@@ -20,7 +21,8 @@ const ENVIRONMENT = `${process.env.NODE_ENV}`.replace(/^((?!(development|product
       useExisting: MongooseConfigService,
     }),
     AppModule,
-    CoreModule
+    CoreModule,
+    AuthModule
   ]
 })
 export class MainModule {}
