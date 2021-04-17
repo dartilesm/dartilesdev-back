@@ -12,7 +12,7 @@ import * as MongooseUniqueValidator from 'mongoose-unique-validator'
         name: UserSchemaName,
         useFactory: () => {
           const schema = UserSchema
-          schema.plugin(MongooseUniqueValidator, { message: '{PATH} already in use' })
+          schema.plugin(MongooseUniqueValidator, { message: 'already in use' })
           return schema
         }
       }

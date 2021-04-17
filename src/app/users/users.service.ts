@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { from, Observable, throwError } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
 import { AuthService } from 'src/auth/auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -10,55 +8,55 @@ import { User, UserDocument, UserSchemaName } from './schemas/user.schema';
 
 @Injectable()
 export class UsersService {
+  private readonly notFoundErrorMessage = 'The user does not exist'
+
   constructor(
     @InjectModel(UserSchemaName) private readonly userModel: Model<UserDocument>,
     private readonly authService: AuthService
   ) {}
 
-  create(createUserDto: CreateUserDto): Observable<CreateUserDto> {
-    return this.authService.hashPaswword(createUserDto.password).pipe(
-      switchMap((passwordHashed: string) => {
-        const user = {
-          ...createUserDto,
-          password: passwordHashed
-        }
-        const createdUser = new this.userModel(user);
-
-        return from(createdUser.save()).pipe(
-          map(() => {
-            const { password, ...response } = user
-            return response
-          }),
-          catchError(err => throwError(err?.errors ?? err))
-        )
-      }),
-      catchError(err => {
-        const errorName = Object.keys(createUserDto)
-          .find(key => err[key])
-        return throwError(err[errorName] ?? err)
+  private formatResponse(userDocument: Promise<UserDocument>, customError?: string) {
+    const handleError = (err?: any) => { throw new Error(customError ?? err) }
+    const response = userDocument
+      .then((user: UserDocument) => {
+        if (!user) handleError()
+        const { password, ...userData } = user.toCustomJSON()
+        return userData
       })
-    )
+      .catch(handleError)
+    return response
   }
 
-  async login(user: User): Promise<User | any> {
-    const currentUser = await this.findOne(user.email)
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const passwordHashed = await this.authService.hashPassword(createUserDto.password)
+    const userCreated = this.formatResponse(new this.userModel({
+      ...createUserDto,
+      password: passwordHashed
+    }).save())
+    return Promise.resolve(userCreated)
+  }
+
+  async login(user: User): Promise<User> {
+    const currentUser = await this.userModel.findOne({ email: user.email }).exec()
+    const currentUserFormatted = await this.formatResponse(Promise.resolve(currentUser))
     const isPasswordValid = await this.authService.comparePassword(user?.password, currentUser?.password)
-    return isPasswordValid && this.authService.login(user)
+    return isPasswordValid && this.authService.login(currentUserFormatted)
   }
 
-  findAll() {
-    return `This action returns all users`;
+  findOneById(id: string): Promise<User> {
+    return this.formatResponse(this.userModel.findById(id).exec(), this.notFoundErrorMessage)
   }
 
-  async findOne(email: string) {
-    return await this.userModel.findOne({ email }).exec()
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+    const currentUser = await this.formatResponse(this.userModel.findByIdAndUpdate(id, updateUserDto).exec(), this.notFoundErrorMessage)
+    const updatedUser: User = {
+      ...currentUser,
+      ...updateUserDto
+    }
+    return updatedUser
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  remove(id: string): Promise<User> {
+    return this.formatResponse(this.userModel.findByIdAndRemove(id).exec(), this.notFoundErrorMessage)
   }
 }

@@ -1,25 +1,22 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus } from '@nestjs/common';
-import { UsersService } from './users.service';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, Patch, Post } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './schemas/user.schema';
-import { Observable } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto): Observable<any> {
-    return this.usersService.create(createUserDto).pipe(
-      catchError(error => {
+  create(@Body() createUserDto: CreateUserDto): Promise<any> {
+    return this.usersService.create(createUserDto)
+      .catch(error => {
         throw new HttpException({
           statusCode: HttpStatus.CONFLICT,
           message: error?.message ?? error,
         }, HttpStatus.CONFLICT);
-      })
-    );
+      });
   }
 
   @Post('login')
@@ -33,23 +30,37 @@ export class UsersController {
       });
   }
 
-  @Get()
-  findAll() {
-    return this.usersService.findAll();
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.usersService.findOneById(id)
+      .catch(error => {
+        throw new HttpException({
+          statusCode: HttpStatus.NOT_FOUND,
+          message: error?.message ?? error,
+        }, HttpStatus.NOT_FOUND);
+      });
   }
-
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.usersService.findOne({id});
-  // }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+    return this.usersService.update(id, updateUserDto)
+      .catch(error => {
+        throw new HttpException({
+          statusCode: HttpStatus.NOT_FOUND,
+          message: error?.message ?? error,
+        }, HttpStatus.NOT_FOUND);
+      });
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+    return this.usersService.remove(id)
+      .then(() => null)
+      .catch(error => {
+        throw new HttpException({
+          statusCode: HttpStatus.NOT_FOUND,
+          message: error?.message ?? error,
+        }, HttpStatus.NOT_FOUND);
+      });
   }
 }
