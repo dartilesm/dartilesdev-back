@@ -7,15 +7,17 @@ import { map } from 'rxjs/operators';
 @Injectable()
 export class PostsService {
   ghostApi: string;
+  ghostToken: string;
 
   constructor(private httpService: HttpService, private configService: ConfigService) {
     this.ghostApi = this.configService.get('GHOST_URI')
+    this.ghostToken = this.configService.get('GHOST_TOKEN')
   }
 
   findAll(): Observable<AxiosResponse> {
     return this.httpService
       .get(
-        `${this.ghostApi}/content/posts/?key=954ab9b544ac9095c070e44c63&include=tags,authors`,
+        `${this.ghostApi}/content/posts/?key=${this.ghostToken}&include=tags,authors`,
       )
       .pipe(
         map((response) =>
