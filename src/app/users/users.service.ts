@@ -8,7 +8,8 @@ import { User, UserDocument, UserSchemaName } from './schemas/user.schema';
 
 @Injectable()
 export class UsersService {
-  private readonly notFoundErrorMessage = 'The user does not exist'
+  private readonly notFoundErrMsg = 'The user does not exist'
+  private readonly invalidCredentialsErrMsg = 'Invalid credentials'
 
   constructor(
     @InjectModel(UserSchemaName) private readonly userModel: Model<UserDocument>,
@@ -38,25 +39,30 @@ export class UsersService {
 
   async login(user: User): Promise<User> {
     const currentUser = await this.userModel.findOne({ email: user.email }).exec()
-    const currentUserFormatted = await this.formatResponse(Promise.resolve(currentUser))
+    const currentUserFormatted = await this.formatResponse(Promise.resolve(currentUser), this.invalidCredentialsErrMsg)
     const isPasswordValid = await this.authService.comparePassword(user?.password, currentUser?.password)
     return isPasswordValid && this.authService.login(currentUserFormatted)
   }
 
   findOneById(id: string): Promise<User> {
-    return this.formatResponse(this.userModel.findById(id).exec(), this.notFoundErrorMessage)
+    return this.formatResponse(this.userModel.findById(id).exec(), this.notFoundErrMsg)
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    const currentUser = await this.formatResponse(this.userModel.findByIdAndUpdate(id, updateUserDto).exec(), this.notFoundErrorMessage)
+    const dataToUpdate = {
+      ...updateUserDto,
+      ...updateUserDto.password && { password: await this.authService.hashPassword(updateUserDto.password) },
+    }
+    const currentUser = await this.formatResponse(this.userModel.findByIdAndUpdate(id, dataToUpdate).exec(), this.notFoundErrMsg)
+    const { password, ...updatedData } = dataToUpdate
     const updatedUser: User = {
       ...currentUser,
-      ...updateUserDto
+      ...updatedData
     }
     return updatedUser
   }
 
   remove(id: string): Promise<User> {
-    return this.formatResponse(this.userModel.findByIdAndRemove(id).exec(), this.notFoundErrorMessage)
+    return this.formatResponse(this.userModel.findByIdAndRemove(id).exec(), this.notFoundErrMsg)
   }
 }
