@@ -1,11 +1,11 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
-import { AppModule } from './app/app.module';
-import { CoreModule } from './core/core.module';
-import { MongooseConfigModule } from './database/mongoose-config.module';
-import { MongooseConfigService } from './database/mongoose-config.service';
-import { AuthModule } from './auth/auth.module';
+import { Module } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
+import { MongooseModule } from '@nestjs/mongoose'
+import { AppModule } from './app/app.module'
+import { CoreModule } from './core/core.module'
+import { MongooseConfigModule } from './database/mongoose-config.module'
+import { MongooseConfigService } from './database/mongoose-config.service'
+import { AuthModule } from './auth/auth.module'
 
 const ENVIRONMENT = `${process.env.NODE_ENV}`.replace(/^((?!(development|production)).)*$/g, 'development')
 
@@ -14,11 +14,11 @@ const ENVIRONMENT = `${process.env.NODE_ENV}`.replace(/^((?!(development|product
     ConfigModule.forRoot({
       isGlobal: true,
       cache: true,
-      envFilePath: `./config/${ENVIRONMENT}.env`,
+      envFilePath: `./config/${ENVIRONMENT}.env`
     }),
     MongooseModule.forRootAsync({
       imports: [MongooseConfigModule],
-      useExisting: MongooseConfigService,
+      useExisting: MongooseConfigService
     }),
     AppModule,
     CoreModule,

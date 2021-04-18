@@ -15,7 +15,8 @@ module.exports = {
   },
   ignorePatterns: ['.eslintrc.js'],
   rules: {
-    'space-before-function-parentheses': 'never',
+    'new-cap': 'off',
+    'space-before-function-parentheses': 'off',
     'no-useless-constructor': 'off',
     '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
